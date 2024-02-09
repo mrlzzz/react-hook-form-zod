@@ -1,35 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
-function App() {
-  const [count, setCount] = useState(0)
+// type FormFields = {
+//     email: string;
+//     password: string;
+// };
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+const formSchema = z.object({
+    email: z.string().email(),
+    password: z.string().email(),
+});
 
-export default App
+type FormFields = z.infer<typeof formSchema>;
+
+const App = () => {
+    const {
+        register,
+        handleSubmit,
+        setError,
+        formState: { errors },
+    } = useForm<FormFields>({
+        defaultValues: {
+            email: "email@email.com",
+        },
+        resolver: zodResolver(formSchema),
+    });
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        try {
+            console.log(data);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            throw new Error();
+        } catch (error) {
+            setError("root", {
+                message: "505 Sorry",
+            });
+        }
+    };
+
+    return (
+        <div className="h-screen w-screen flex items-center justify-center">
+            <div className="p-10 text-xl">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="flex flex-col gap-2 form min-w-[200px]"
+                >
+                    {errors.root?.message && (
+                        <div className="text-red-500">
+                            {errors.root?.message}
+                        </div>
+                    )}
+                    <input
+                        {...register("email")}
+                        type="text"
+                        placeholder="Email"
+                    />
+                    {errors.email && (
+                        <div className="text-red-500">
+                            {errors.email.message}
+                        </div>
+                    )}
+                    <input
+                        {...register("password")}
+                        type="password"
+                        placeholder="Password"
+                    />
+                    {errors.password && (
+                        <div className="text-red-500">
+                            {errors.password.message}
+                        </div>
+                    )}
+
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default App;
